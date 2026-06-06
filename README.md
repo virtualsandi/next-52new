@@ -1,4 +1,35 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+'''' js
+   export const metadata = {
+    "title": {
+        "absolute": "My page title",
+        "template": "%s | Ecommerce Page"
+    },
+    "description": "",
+    "keywords": ["value1", "value2"],
+    "authors": [{"name": "Sandip Badayak"}]
+    "openGraph" : {
+        "title": "",
+        "description": "",
+        "url": "",
+        "siteName": "website Name",
+        "images": [
+            {
+                "url": "",
+                "width": 1200,
+                "height": 630
+            }
+        ],
+        "locale": "en_US",
+        "type": "website"
+    },
+    "twitter": {
+        "card": "summary_large_image",  // twitter card type
+        "title": "twitter title",
+        "description": "Twitter Description",
+        "images": ["imagesUrl]
+    }
+   }
+   '''''''''''''
 
 ## Getting Started
 
