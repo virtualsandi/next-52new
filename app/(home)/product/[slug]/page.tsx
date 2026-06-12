@@ -7,12 +7,12 @@ type metaProps = {
 }
 export async function generateMetadata({params}:metaProps): Promise<Metadata> {
   const {slug} = await params
-  const response = await fetch(process.env.NEXT_PUBLIC_API_URl+"/product/"+slug);
-  const detail = await response.json()
-
-
+  const response = await fetch(process.env.NEXT_PUBLIC_API_URL+"/product/"+slug);
   
-    return {
+  
+  const detail = await response.json()
+  
+  return {
     title: detail.data.name,
     description: detail.data.name,
     openGraph: {
@@ -29,8 +29,8 @@ const response = await fetch(process.env.NEXT_PUBLIC_API_URL + '/product/'+ slug
 const detail = await response.json()
     return(<>
     <div className="h-screen">
-  <ProductDetail detail={detail}/>
-
+  {/* <ProductDetail detail={detail}/> */}
+<ProductDetail detail= {detail.data} />
     </div>
     </>)
 }

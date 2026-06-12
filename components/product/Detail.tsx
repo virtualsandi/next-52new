@@ -1,24 +1,11 @@
 'use client'
 
-import axiosInstance from "@/config/axios.config"
-import { useParams } from "next/navigation"
-import { useEffect, useState } from "react"
+import PageEdit from "./PageEdit";
 
-export default function ProductDetail ({detail})  {
-    // params
-    // const [detail, setDetail] = useState()
-    const params = useParams()
-    const getProductDetail = async() => {
-        // api call
-        // const response =await axiosInstance.get('/product/'+params.slug)
-        // console.log(response)
-    }
+export default function ProductDetail({ detail }: any) {
+  if (!detail) {
+    return <div>Product not found</div>;
+  }
 
-    useEffect(() => {
-        getProductDetail()
-    },[])
-    return(<>
-    {params.slug}
-    
-    </>)
+  return <PageEdit detail={detail} />;
 }
