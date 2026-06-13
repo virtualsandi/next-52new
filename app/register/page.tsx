@@ -1,12 +1,17 @@
 "use client";
-
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import axios from "axios";
+import styles from "./register.module.css";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const router = useRouter();
 
-  const [form, setForm] = useState({
+  const [loading, setLoading] = useState(false);
+
+  const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
@@ -17,193 +22,333 @@ export default function RegisterPage() {
   });
 
   const [image, setImage] = useState<File | null>(null);
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
 
-  // handle input change
   const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: React.ChangeEvent<
+      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+    >
   ) => {
-    setForm({
-      ...form,
+    setFormData({
+      ...formData,
       [e.target.name]: e.target.value,
     });
   };
 
-  // handle file
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setImage(e.target.files[0]);
-    }
+  const handleReset = () => {
+    setFormData({
+      name: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+      phone: "",
+      address: "",
+      role: "customer",
+    });
+
+    setImage(null);
   };
 
-  // submit form
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const handleSubmit = async (
+  e: React.FormEvent<HTMLFormElement>
+) => {
+  e.preventDefault();
 
-    // validation
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match");
-      return;
+  // Required field validation
+  if (
+    !formData.name.trim() ||
+    !formData.email.trim() ||
+    !formData.password.trim() ||
+    !formData.confirmPassword.trim() ||
+    !formData.phone.trim() ||
+    !formData.address.trim()
+  ) {
+    toast.error("All fields are required");
+    return;
+  }
+
+  // Image validation
+  if (!image) {
+    toast.error("Please upload an image");
+    return;
+  }
+
+  // Email validation
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  if (!emailRegex.test(formData.email)) {
+    toast.error("Please enter a valid email address");
+    return;
+  }
+// 2. Password strength
+if (formData.password.length < 8) {
+  toast.error(
+    "Password must be at least 8 characters long"
+  );
+  return;
+}
+
+if (!/[A-Z]/.test(formData.password)) {
+  toast.error(
+    "Password must contain at least one uppercase letter"
+  );
+  return;
+}
+
+if (!/[a-z]/.test(formData.password)) {
+  toast.error(
+    "Password must contain at least one lowercase letter"
+  );
+  return;
+}
+
+if (!/[0-9]/.test(formData.password)) {
+  toast.error(
+    "Password must contain at least one number"
+  );
+  return;
+}
+
+if (!/[!@#$%^&*(),.?\":{}|<>]/.test(formData.password)) {
+  toast.error(
+    "Password must contain at least one special character"
+  );
+  return;
+}
+  // Password match validation
+  if (formData.password !== formData.confirmPassword) {
+    toast.error(
+      "Password and Confirm Password should be same"
+    );
+    return;
+  }
+
+  try {
+    setLoading(true);
+
+    const payload = new FormData();
+
+    payload.append("name", formData.name);
+    payload.append("email", formData.email);
+    payload.append("password", formData.password);
+    payload.append("phone", formData.phone);
+    payload.append("address", formData.address);
+    payload.append("role", formData.role);
+
+    if (image) {
+      payload.append("image", image);
     }
 
-    try {
-      setLoading(true);
-
-      const formData = new FormData();
-
-      formData.append("name", form.name);
-      formData.append("email", form.email);
-      formData.append("password", form.password);
-      formData.append("phone", form.phone);
-      formData.append("address", form.address);
-      formData.append("role", form.role);
-
-      if (image) {
-        formData.append("image", image);
+    const response = await axios.post(
+      "http://localhost:9000/api/v1/auth/register",
+      payload,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       }
+    );
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
-        {
-          method: "POST",
-          body: formData,
-        }
+    toast.success(
+      response.data.message ||
+        "Registration Successful"
+    );
+
+    setTimeout(() => {
+      router.push("/login");
+    }, 1500);
+  } catch (error: any) {
+    console.error(error);
+
+    const message =
+      error?.response?.data?.message || "";
+
+    if (
+      message.toLowerCase().includes("email")
+    ) {
+      toast.error(
+        "Email already exists. Please use another email."
       );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-
-      // redirect to login
-      router.push("/login?registered=true");
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    } else {
+      toast.error(
+        message || "Registration Failed"
+      );
     }
-  };
+  } finally {
+    setLoading(false);
+  }
+
+};
+const isFormValid =
+  formData.name.trim() &&
+  formData.email.trim() &&
+  formData.password.trim() &&
+  formData.confirmPassword.trim() &&
+  formData.phone.trim() &&
+  formData.address.trim() &&
+  image;
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="bg-white p-6 rounded-xl shadow-md w-full max-w-md"
-      >
-        <h2 className="text-2xl font-bold mb-4">Register</h2>
+    <div className={styles.container}>
+      <div className={styles.registerCard}>
+        <div className={styles.leftSection}>
+          <h1>ShopEase</h1>
 
-        {error && <p className="text-red-500 mb-2">{error}</p>}
+          <h2>Start Your Shopping Journey</h2>
 
-        {/* Name */}
-        <input
-          name="name"
-          placeholder="Enter your name"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        />
+          <p>
+            Create your account and unlock exclusive
+            deals, faster checkout, wishlist management,
+            and order tracking.
+          </p>
 
-        {/* Email */}
-        <input
-          name="email"
-          placeholder="Enter your email"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        />
+          <div className={styles.features}>
+            <div>✓ Secure Payments</div>
+            <div>✓ Fast Delivery</div>
+            <div>✓ Easy Returns</div>
+            <div>✓ Special Discounts</div>
+          </div>
+        </div>
 
-        {/* Password */}
-        <input
-          name="password"
-          type="password"
-          placeholder="Enter password"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        />
+        <div className={styles.rightSection}>
+          <h2>Register Page</h2>
 
-        {/* Confirm Password */}
-        <input
-          name="confirmPassword"
-          type="password"
-          placeholder="Confirm password"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        />
+          <form onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label>Full Name</label>
+              <input
+                type="text"
+                name="name"
+                placeholder="Enter your name"
+                value={formData.name}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        {/* Phone */}
-        <input
-          name="phone"
-          placeholder="Enter phone number"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        />
+            <div className={styles.formGroup}>
+              <label>Email</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="admin2019@gmail.com"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        {/* Address */}
-        <input
-          name="address"
-          placeholder="Enter address"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        />
+            <div className={styles.row}>
+              <div className={styles.formGroup}>
+                <label>Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  placeholder="Enter password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-        {/* Role */}
-        <select
-          name="role"
-          className="w-full p-2 border mb-2"
-          onChange={handleChange}
-        >
-          <option value="customer">Customer</option>
-          <option value="seller">Seller</option>
-          <option value="admin">Admin</option>
-        </select>
+              <div className={styles.formGroup}>
+                <label>Re-Password</label>
+                <input
+                  type="password"
+                  name="confirmPassword"
+                  placeholder="Re-enter password"
+                  value={formData.confirmPassword}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+            </div>
 
-        {/* Image */}
-        <input
-          type="file"
-          className="w-full p-2 border mb-2"
-          onChange={handleFileChange}
-        />
+            <div className={styles.formGroup}>
+              <label>Phone</label>
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Enter your phone number"
+                value={formData.phone}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        {/* Submit */}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-blue-500 text-white p-2 rounded"
-        >
-          {loading ? "Registering..." : "Submit"}
-        </button>
+            <div className={styles.formGroup}>
+              <label>Address</label>
+              <textarea
+                name="address"
+                rows={3}
+                placeholder="Enter your address"
+                value={formData.address}
+                onChange={handleChange}
+                required
+              />
+            </div>
 
-        {/* Reset */}
-        <button
-          type="button"
-          onClick={() =>
-            setForm({
-              name: "",
-              email: "",
-              password: "",
-              confirmPassword: "",
-              phone: "",
-              address: "",
-              role: "customer",
-            })
-          }
-          className="w-full mt-2 bg-gray-300 p-2 rounded"
-        >
-          Reset
-        </button>
+            <div className={styles.formGroup}>
+              <label>Role</label>
+              <select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+              >
+                <option value="customer">
+                  Customer
+                </option>
+                <option value="seller">
+                  Seller
+                </option>
+              </select>
+            </div>
 
-        {/* Login Link */}
-        <p className="text-center mt-3 text-sm">
-          Already have an account?{" "}
-          <span
-            className="text-blue-600 cursor-pointer"
-            onClick={() => router.push("/login")}
-          >
-            Login Here
-          </span>
-        </p>
-      </form>
+            <div className={styles.formGroup}>
+              <label>Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                required
+                onChange={(e) =>
+                  setImage(
+                    e.target.files?.[0] || null
+                  )
+                }
+              />
+            </div>
+
+            <div className={styles.buttonGroup}>
+              <button
+                type="button"
+                className={styles.resetBtn}
+                disabled={loading }
+              >
+                Reset
+              </button>
+
+              <button
+                type="submit"
+                className={styles.submitBtn}
+                disabled={loading}
+              >
+                {loading
+                  ? "Submitting..."
+                  : "Submit"}
+              </button>
+            </div>
+
+            <p className={styles.loginText}>
+              Already have an account?
+              <Link
+                href="/login"
+                className={styles.loginLink}
+              >
+                Login Here
+              </Link>
+            </p>
+          </form>
+        </div>
+      </div>
     </div>
   );
 }

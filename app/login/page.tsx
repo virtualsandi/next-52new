@@ -1,12 +1,13 @@
-
-   "use client";
+"use client";
 
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
+import axios from "axios";
+import styles from "./login.module.css";
 
 export default function LoginPage() {
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const [formData, setFormData] = useState({
     email: "",
@@ -14,116 +15,106 @@ export default function LoginPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value,
+    });
   };
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>
+  ) => {
     e.preventDefault();
-    setError("");
-    setLoading(true);
 
     try {
-      // simulate API call
-      await new Promise((res) => setTimeout(res, 1200));
+      setLoading(true);
 
-      console.log(formData);
+      const response = await axios.post(
+        `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
+        formData
+      );
+
+      // Save token
+      localStorage.setItem(
+        "token",
+        response.data.token
+      );
+
+      alert("Login Successful");
 
       router.push("/dashboard");
-    } catch (err) {
-      setError("Invalid credentials");
+    } catch (error: any) {
+      alert(
+        error?.response?.data?.message ||
+          "Login Failed"
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex justify-center items-center min-h-screen bg-gradient-to-br from-blue-100 via-white to-purple-100 px-4">
-      <form
-        onSubmit={handleLogin}
-        className="bg-white/80 backdrop-blur-md p-8 rounded-2xl shadow-xl w-full max-w-md border border-gray-200 transition-all duration-300 hover:shadow-2xl"
-      >
-        {/* Title */}
-        <h2 className="text-3xl font-bold text-center mb-2">Welcome Back</h2>
-        <p className="text-center text-gray-500 mb-6">
-          Login to continue
-        </p>
-
-        {/* Success message */}
-        {searchParams.get("registered") && (
-          <div className="bg-green-100 text-green-700 p-2 rounded mb-3 text-sm">
-            Registration successful! Please login.
-          </div>
-        )}
-
-        {/* Error */}
-        {error && (
-          <div className="bg-red-100 text-red-600 p-2 rounded mb-3 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Email */}
-        <div className="relative mb-4">
-          <input
-            name="email"
-            type="email"
-            onChange={handleChange}
-            className="peer w-full p-3 border rounded-lg outline-none focus:border-blue-500 bg-transparent"
-            placeholder=" "
-          />
-          <label className="absolute left-3 top-3 text-gray-400 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-blue-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm bg-white px-1">
-            Email Address
-          </label>
+    <div className={styles.container}>
+      <div className={styles.loginCard}>
+        <div className={styles.leftSection}>
+          <h1>Let's Start New Journey</h1>
+          <p>
+            Welcome back, operator.
+Secure login required to access your account modules:
+ orders | wishlist | profile
+          </p>
         </div>
 
-        {/* Password */}
-        <div className="relative mb-4">
-          <input
-            name="password"
-            type={showPassword ? "text" : "password"}
-            onChange={handleChange}
-            className="peer w-full p-3 border rounded-lg outline-none focus:border-blue-500 bg-transparent"
-            placeholder=" "
-          />
-          <label className="absolute left-3 top-3 text-gray-400 text-sm transition-all peer-focus:-top-2 peer-focus:text-xs peer-focus:text-blue-500 peer-placeholder-shown:top-3 peer-placeholder-shown:text-sm bg-white px-1">
-            Password
-          </label>
+        <div className={styles.rightSection}>
+          <h2>Sign In</h2>
 
-          <span
-            className="absolute right-3 top-3 text-sm text-blue-500 cursor-pointer"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? "Hide" : "Show"}
-          </span>
+          <form onSubmit={handleSubmit}>
+            <div className={styles.formGroup}>
+              <label>Email Address</label>
+              <input
+                type="email"
+                name="email"
+                placeholder="Enter your email"
+                value={formData.email}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <div className={styles.formGroup}>
+              <label>Password</label>
+              <input
+                type="password"
+                name="password"
+                placeholder="Enter your password"
+                value={formData.password}
+                onChange={handleChange}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className={styles.loginBtn}
+              disabled={loading}
+            >
+              {loading ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+
+          <div className={styles.bottomText}>
+            Don't have an account?{" "}
+            <Link
+              href="/register"
+              className={styles.registerLink}
+            >
+              Register here
+            </Link>
+          </div>
         </div>
-
-        {/* Button */}
-        <button
-          disabled={loading}
-          className="w-full bg-blue-600 hover:bg-blue-700 transition-all text-white p-3 rounded-lg font-medium flex items-center justify-center"
-        >
-          {loading ? (
-            <span className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full"></span>
-          ) : (
-            "Login"
-          )}
-        </button>
-
-        {/* Footer */}
-        <p className="text-center mt-4 text-sm text-gray-600">
-          Don’t have an account?{" "}
-          <span
-            className="text-blue-600 cursor-pointer font-medium"
-            onClick={() => router.push("/register")}
-          >
-            Register
-          </span>
-        </p>
-      </form>
+      </div>
     </div>
   );
 }
