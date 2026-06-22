@@ -362,7 +362,7 @@ export default function DashboardPage() {
       {/* Hero */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <span className={styles.heroBadge}>E-Commerce Store</span>
+          <span className={styles.heroBadge}>E-Commerceeeee Store</span>
           <h1>
             {isAdminOrSeller
               ? "Your store dashboard"
