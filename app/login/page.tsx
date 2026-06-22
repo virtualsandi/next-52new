@@ -5,8 +5,10 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import axios from "axios";
 import styles from "./login.module.css";
-
+import { toast } from "sonner";
+import { extractLoginToken, saveAuthToken } from "@/lib/auth";
 export default function LoginPage() {
+  
   const router = useRouter();
 
   const [formData, setFormData] = useState({
@@ -35,22 +37,44 @@ export default function LoginPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/auth/login`,
         formData
       );
+      
 
-      // Save token
-      localStorage.setItem(
-        "token",
-        response.data.token
-      );
+      const token = extractLoginToken(response.data);
+      if (!token) {
+        toast.error("Login failed: no token received");
+        return;
+      }
 
-      alert("Login Successful");
+      saveAuthToken(token);
 
-      router.push("/dashboard");
+localStorage.setItem(
+  "user",
+  JSON.stringify(response.data.data.user)
+);
+
+localStorage.setItem(
+  "role",
+  response.data.data.user.role
+);
+
+      toast.success("Login Successful");
+      const role = response.data.data.user.role;
+
+     if (role === "seller") {
+  router.push("/dashboard");
+} else if (role === "customer") {
+  router.push("/");
+} else {
+  router.push("/");
+}
+      
     } catch (error: any) {
-      alert(
-        error?.response?.data?.message ||
-          "Login Failed"
-      );
-    } finally {
+      
+ 
+  toast.error("Login Failed");
+}
+      
+     finally {
       setLoading(false);
     }
   };

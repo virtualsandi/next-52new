@@ -1,6 +1,10 @@
 export default function PageEdit ({detail}: any) {
+ 
+    const price = Number(detail.price || 0);
+const discount = Number(detail.discount || 0);
 
-    
+const finalPrice = price - (price * discount) / 100;
+const savings = price - finalPrice;
     return(<>
     
 
@@ -51,11 +55,23 @@ export default function PageEdit ({detail}: any) {
 
 
           <div className="mt-6 flex items-center justify-between">
-  <div className="text-2xl font-semibold text-black-600">
-    
-    Npr. {detail.price}
-    
+  {detail.price && (
+  <div className="mb-4">
+    <div className="text-sm text-gray-500 line-through">
+      Npr. {price}
+    </div>
+
+    <div className="text-2xl font-bold text-green-600">
+      Npr. {finalPrice}
+    </div>
+
+    {discount > 0 && (
+      <div className="text-sm text-red-500">
+        You save {discount}% (₹{savings})
+      </div>
+    )}
   </div>
+)}
 
   <button
     type="button"

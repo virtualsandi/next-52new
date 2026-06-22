@@ -1,6 +1,6 @@
 import AdminLayout from "@/components/layout/AdminLayout";
 
-export default function DashboardLayout({
+export default function CustomerChatLayout({
   children,
 }: {
   children: React.ReactNode;

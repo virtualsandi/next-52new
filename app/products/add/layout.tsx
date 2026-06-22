@@ -1,6 +1,6 @@
 import AdminLayout from "@/components/layout/AdminLayout";
 
-export default function DashboardLayout({
+export default function AddProductLayout({
   children,
 }: {
   children: React.ReactNode;

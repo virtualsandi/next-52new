@@ -1,5 +1,5 @@
 import axios from "axios";
-import Cookies from "js-cookie";
+import { getAuthToken } from "@/lib/auth";
 
 const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL,
@@ -20,12 +20,11 @@ const axiosInstance = axios.create({
 
 // request interceptor
  axiosInstance.interceptors.request.use((config) => {
-    const token = Cookies.get("_at_52");
-    if(token) {
-        config.headers['Authorization'] = "Bearer "+token
+    const token = getAuthToken();
+    if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-
  })
  export interface AxiosResponseDataType{
     // eslint-disable-next-lin

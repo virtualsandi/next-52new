@@ -46,7 +46,7 @@ interface IProduct {
   _id: string
 }
 export default async function Home() {
-  const response = await fetch(process.env.NEXT_PUBLIC_API_URL+'/product?+page=1&limit=15' ,{
+  const response = await fetch(process.env.NEXT_PUBLIC_API_URL+'/products?page=1&limit=15' ,{
     method:"GET",
   });
     let data;
@@ -127,10 +127,10 @@ export default async function Home() {
    {/** Product grid */}
     <div className="mb-4 grid gap-4 sm:grid-cols-2 md:mb-8 lg:grid-cols-3 xl:grid-cols-4">
      {
-      data.data && data.data.map((prod: IProduct, i: number) => (
+      Array.isArray(data) && data.map((prod: IProduct, i: number) => (
          <div key={i} className="rounded-lg border border-gray-200 bg-white p-6 shadow-sm  ">
         <div className="h-56 w-full">
-          <Link href={'/product/'+prod.slug}>
+          <Link href={'/products/'+prod.slug}>
             <img 
             className="mx-auto h-full " 
             src={process.env.NEXT_PUBLIC_ASSETS_URL+prod.images[0]} 
@@ -167,7 +167,7 @@ export default async function Home() {
           </div>
 
           <Link 
-          href={'/product/'+prod.slug}
+          href={'/products/'+prod.slug}
           className="text-lg font-semibold leading-tight text-gray-900 hover:underline ">
           {prod.name}
           </Link>
@@ -218,7 +218,7 @@ export default async function Home() {
           <div className="mt-4 flex items-center justify-between gap-4">
             <p 
             className="text-2xl font-extrabold leading-tight text-gray-900 ">
-              Npr. {prod.afterDiscount/100}
+              Npr. {prod.afterDiscount}
               </p>
 
             <button type="button" className="inline-flex items-center rounded-lg bg-teal-700 px-5 py-2.5 text-sm font-medium text-white hover:bg-teal-800 focus:outline-none focus:ring-4  focus:ring-teal-300 dark:bg-teal-600 dark:hover:bg-teal-700 dark:focus:ring-teal-800">
@@ -238,7 +238,7 @@ export default async function Home() {
     
     <div className="w-full text-center">
       <Link 
-      href="/product"
+      href="/products"
       type="/button" className="rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-medium text-gray-900 hover:bg-gray-100 hover:text-teal-700 focus:z-10 focus:outline-none focus:ring-4 focus:ring-gray-100   ">
         Show more
         </Link>

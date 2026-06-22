@@ -27,7 +27,7 @@ export default async function CategoryPage() {
                             src={
                                 category.icon ? 
                                 process.env.NEXT_PUBLIC_ASSETS_URL + category.icon 
-                                : "/no-image-png"
+                                : "/no-image.png"
                             }
                             alt={category.name}
                             className="h-full w-full object-cover" />

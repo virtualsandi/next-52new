@@ -1,10 +1,11 @@
 "use client";
+
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import styles from "./register.module.css";
 import { toast } from "sonner";
+import styles from "./register.module.css";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -34,26 +35,25 @@ export default function RegisterPage() {
     });
   };
 
-  const handleReset = () => {
-    setFormData({
-      name: "",
-      email: "",
-      password: "",
-      confirmPassword: "",
-      phone: "",
-      address: "",
-      role: "customer",
-    });
+ const handleReset = () => {
+  setFormData({
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    phone: "",
+    address: "",
+    role: "customer",
+  });
 
-    setImage(null);
-  };
+  setImage(null);
+};
 
-  const handleSubmit = async (
+ const handleSubmit = async (
   e: React.FormEvent<HTMLFormElement>
 ) => {
   e.preventDefault();
 
-  // Required field validation
   if (
     !formData.name.trim() ||
     !formData.email.trim() ||
@@ -66,56 +66,61 @@ export default function RegisterPage() {
     return;
   }
 
-  // Image validation
   if (!image) {
     toast.error("Please upload an image");
     return;
   }
 
-  // Email validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
   if (!emailRegex.test(formData.email)) {
     toast.error("Please enter a valid email address");
     return;
   }
-// 2. Password strength
-if (formData.password.length < 8) {
-  toast.error(
-    "Password must be at least 8 characters long"
-  );
-  return;
-}
 
-if (!/[A-Z]/.test(formData.password)) {
-  toast.error(
-    "Password must contain at least one uppercase letter"
-  );
-  return;
-}
+  if (formData.password.length < 8) {
+    toast.error(
+      "Password must be at least 8 characters long"
+    );
+    return;
+  }
 
-if (!/[a-z]/.test(formData.password)) {
-  toast.error(
-    "Password must contain at least one lowercase letter"
-  );
-  return;
-}
+  if (!/[A-Z]/.test(formData.password)) {
+    toast.error(
+      "Password must contain at least one uppercase letter"
+    );
+    return;
+  }
 
-if (!/[0-9]/.test(formData.password)) {
-  toast.error(
-    "Password must contain at least one number"
-  );
-  return;
-}
+  if (!/[a-z]/.test(formData.password)) {
+    toast.error(
+      "Password must contain at least one lowercase letter"
+    );
+    return;
+  }
 
-if (!/[!@#$%^&*(),.?\":{}|<>]/.test(formData.password)) {
-  toast.error(
-    "Password must contain at least one special character"
-  );
-  return;
-}
-  // Password match validation
-  if (formData.password !== formData.confirmPassword) {
+  if (!/[0-9]/.test(formData.password)) {
+    toast.error(
+      "Password must contain at least one number"
+    );
+    return;
+  }
+
+  if (
+    !/[!@#$%^&*(),.?":{}|<>]/.test(
+      formData.password
+    )
+  ) {
+    toast.error(
+      "Password must contain at least one special character"
+    );
+    return;
+  }
+
+  if (
+    formData.password !==
+    formData.confirmPassword
+  ) {
     toast.error(
       "Password and Confirm Password should be same"
     );
@@ -139,44 +144,52 @@ if (!/[!@#$%^&*(),.?\":{}|<>]/.test(formData.password)) {
     }
 
     const response = await axios.post(
-      "http://localhost:9000/api/v1/auth/register",
+      `${process.env.NEXT_PUBLIC_API_URL}/auth/register`,
       payload,
       {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type":
+            "multipart/form-data",
         },
       }
     );
 
     toast.success(
-      response.data.message ||
+      
         "Registration Successful"
     );
+
+    handleReset();
 
     setTimeout(() => {
       router.push("/login");
     }, 1500);
   } catch (error: any) {
-    console.error(error);
+    console.error(
+      "Register Error:",
+      error
+    );
 
     const message =
-      error?.response?.data?.message || "";
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      "Registration Failed";
 
     if (
-      message.toLowerCase().includes("email")
+      typeof message === "string" &&
+      message
+        .toLowerCase()
+        .includes("email")
     ) {
       toast.error(
         "Email already exists. Please use another email."
       );
     } else {
-      toast.error(
-        message || "Registration Failed"
-      );
+      toast.error(message);
     }
   } finally {
     setLoading(false);
   }
-
 };
 const isFormValid =
   formData.name.trim() &&
@@ -319,22 +332,23 @@ const isFormValid =
 
             <div className={styles.buttonGroup}>
               <button
-                type="button"
-                className={styles.resetBtn}
-                disabled={loading }
-              >
-                Reset
-              </button>
+  type="button"
+  className={styles.resetBtn}
+  disabled={loading}
+  onClick={handleReset}
+>
+  Reset
+</button>
 
-              <button
-                type="submit"
-                className={styles.submitBtn}
-                disabled={loading}
-              >
-                {loading
-                  ? "Submitting..."
-                  : "Submit"}
-              </button>
+             <button
+  type="submit"
+  className={styles.submitBtn}
+  disabled={loading || !isFormValid}
+>
+  {loading
+    ? "Submitting..."
+    : "Submit"}
+</button>
             </div>
 
             <p className={styles.loginText}>
